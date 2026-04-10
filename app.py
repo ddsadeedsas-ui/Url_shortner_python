@@ -26,6 +26,7 @@ def generate_short_code(length=6):
 # Home page to submit URL
 @app.route('/', methods=['GET', 'POST'])
 def home():
+    short_url = None
     if request.method == 'POST':
         long_url = request.form['long_url'].strip()
 
@@ -40,15 +41,13 @@ def home():
             c.execute('INSERT INTO urls (short_code, long_url) VALUES (?, ?)', (short_code, long_url))
             conn.commit()
         except sqlite3.IntegrityError:
-            # In rare case code already exists
             short_code = generate_short_code()
             c.execute('INSERT INTO urls (short_code, long_url) VALUES (?, ?)', (short_code, long_url))
             conn.commit()
 
         short_url = request.host_url + short_code
-        return render_template('index.html', short_url=short_url)
-
-    return render_template('index.html', short_url=None)
+    
+    return render_template('index.html', short_url=short_url)
 
 # Redirect route
 @app.route('/<short_code>')
@@ -60,4 +59,5 @@ def redirect_short_url(short_code):
     return 'URL not found', 404
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Set to 0.0.0.0 and port 8888 for container compatibility
+    app.run(host='0.0.0.0', port=8888, debug=True)
